@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  whisper-backend:
+    build: .
+    container_name: whisper-backend
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongodb
+      - redis
+      - elasticsearch
+    networks:
+      - whisper-network
+
+  mongodb:
+    image: mongo:7
+    container_name: whisper-mongo
+    restart: always
+    ports:
+      - '27018:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      - whisper-network
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:8
+    container_name: whisper-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    networks:
+      - whisper-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: whisper-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - '9200:9200'
+    networks:
+      - whisper-network
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+volumes:
+  mongo-data:
+  es-data:
+
+networks:
+  whisper-network:
+    driver: bridge
