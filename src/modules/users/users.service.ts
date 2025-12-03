@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 
@@ -8,24 +10,41 @@ import { User } from './schemas/user.schema';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async create(username: string, bio?: string): Promise<User> {
-    const newUser = new this.userModel({ username, bio });
-    return newUser.save();
+  async create(createUserDto: CreateUserDto) {
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(createUserDto.password, salt);
+
+    const user = {
+      fName: createUserDto.fName,
+      lName: createUserDto.lName,
+      userName: createUserDto.userName,
+      email: createUserDto.email,
+      phone: createUserDto.phone,
+      password: hashed,
+    };
+
+    return await this.userModel.create(user); // Mongoose / MongoDB / Repo call
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findOne(id: number): Promise<User | null> {
+    return this.userModel.findById(id).exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .exec();
+  }
+
+  async remove(id: number): Promise<User | null> {
+    return this.userModel.findByIdAndDelete(id).exec();
   }
 }
