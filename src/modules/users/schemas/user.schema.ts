@@ -2,6 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ timestamps: true })
 export class User {
+  id?: string;
+
   @Prop({ required: true })
   fName: string;
 
@@ -22,3 +24,8 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Create virtual "id" that maps to "_id"
+UserSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
