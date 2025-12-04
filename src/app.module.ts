@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -11,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
       // 'mongodb://admin:admin123@localhost:27018/?authSource=admin',
     ),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
